@@ -59,6 +59,7 @@ function EditContent() {
   const [newFileType, setNewFileType] = useState<'html' | 'css' | 'js' | 'python' | 'jsx' | 'tsx'>('html')
   const [runOutput, setRunOutput] = useState('')
   const [isRunning, setIsRunning] = useState(false)
+  const [showPreview, setShowPreview] = useState(true)
 
   // Load files from device storage
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -117,11 +118,38 @@ function EditContent() {
     const fileName = newFileName.endsWith(`.${newFileType}`) ? newFileName : `${newFileName}.${newFileType}`
     
     const defaultContent = {
-      html: 
-      ? `<!DOCTYPE html>\n<html>\n<head>\n  <title>${fileName}</title>\n</head>\n<body>\n  \n</body>\n</html>`
-      : newFileType === 'css'
-      ? `/* ${fileName} Styles */\n`
-      : `// ${fileName} Script\n`
+      html: `<!DOCTYPE html>
+<html>
+<head>
+  <title>${fileName}</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1>Hello World!</h1>
+  <script src="script.js"></script>
+</body>
+</html>`,
+      css: `/* ${fileName} Styles */
+body { font-family: Arial; margin: 20px; }
+`,
+      js: `// ${fileName} Script
+console.log('Hello!');
+`,
+      python: `# ${fileName}
+print("Hello, World!")
+`,
+      jsx: `// React Component
+export default function App() {
+  return <h1>Hello World!</h1>
+}
+`,
+      tsx: `// TypeScript React Component
+import React from 'react';
+export default function App() {
+  return <h1>Hello World!</h1>
+}
+`,
+    }[newFileType] || ''
     
     try {
       const fileHandle = await project.folderHandle.getFileHandle(fileName, { create: true })
@@ -147,6 +175,44 @@ function EditContent() {
     } catch (err) {
       console.error('Error creating file:', err)
       alert('Error creating file')
+    }
+  }
+
+  // API URL for running code
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://huggingface.co/spaces/amkyawdev/Edithob-backend'
+
+  // Run code via backend API
+  const runCode = async () => {
+    const currentFile = files[currentFileIndex]
+    if (!currentFile) return
+    
+    const ext = currentFile.name.split('.').pop()?.toLowerCase()
+    
+    if (ext !== 'py') {
+      setRunOutput('⚠️ Only Python files can run on backend.\nUse browser preview for HTML/CSS/JS.')
+      return
+    }
+    
+    setIsRunning(true)
+    setRunOutput('Running...')
+    
+    try {
+      const response = await fetch(`${API_URL}/run`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: currentCode }),
+      })
+      
+      if (response.ok) {
+        const result = await response.json()
+        setRunOutput(result.output || result.stdout || 'No output')
+      } else {
+        setRunOutput(`Error: ${response.statusText}`)
+      }
+    } catch (err) {
+      setRunOutput(`Error: ${err instanceof Error ? err.message : 'Failed to run'}`)
+    } finally {
+      setIsRunning(false)
     }
   }
 
@@ -240,6 +306,10 @@ function EditContent() {
             <Link href="/main" className="nav-link btn-sm me-2">
               <i className="bi bi-arrow-left me-1"></i>Back
             </Link>
+            <button className="btn btn-success btn-sm me-2" onClick={runCode} disabled={isRunning}>
+              <i className={`bi ${isRunning ? 'bi-hourglass-split' : 'bi-play-fill'} me-1`}></i>
+              {isRunning ? 'Running...' : 'Run'}
+            </button>
             <button className="btn btn-light btn-sm" onClick={saveProjectToDevice} disabled={isSaving}>
               <i className={`bi ${isSaving ? 'bi-hourglass-split' : 'bi-save'} me-1`}></i>
               {isSaving ? 'Saving...' : 'Save'}
@@ -329,22 +399,47 @@ function EditContent() {
 
             {/* Preview */}
             <div className="card card-dark mt-3">
-              <div className="card-header">
-                <small><i className="bi bi-play me-2"></i>Preview</small>
+              <div className="card-header d-flex justify-content-between align-items-center">
+                <small>
+                  <i className={`bi ${showPreview ? 'bi-eye-fill' : 'bi-eye-slash'} me-2`}></i>
+                  Preview
+                </small>
+                <button className="btn btn-sm btn-outline-light p-0 px-1" onClick={() => setShowPreview(!showPreview)}>
+                  <i className={`bi ${showPreview ? 'bi-dash' : 'bi-plus'}`}></i>
+                </button>
               </div>
-              <div className="card-body p-0">
-                <iframe
-                  srcDoc={generatePreviewHTML()}
-                  className="w-100"
-                  style={{ 
-                    border: 'none', 
-                    minHeight: '400px',
-                    background: '#fff'
-                  }}
-                  sandbox="allow-scripts"
-                />
-              </div>
+              {showPreview && (
+                <div className="card-body p-0">
+                  <iframe
+                    srcDoc={generatePreviewHTML()}
+                    className="w-100"
+                    style={{ 
+                      border: 'none', 
+                      minHeight: '400px',
+                      background: '#fff'
+                    }}
+                    sandbox="allow-scripts"
+                  />
+                </div>
+              )}
             </div>
+
+            {/* Run Output */}
+            {runOutput && (
+              <div className="card card-dark mt-3">
+                <div className="card-header d-flex justify-content-between align-items-center">
+                  <small><i className="bi bi-terminal me-2"></i>Output</small>
+                  <button className="btn btn-sm btn-outline-light p-0 px-1" onClick={() => setRunOutput('')}>
+                    <i className="bi bi-x"></i>
+                  </button>
+                </div>
+                <div className="card-body">
+                  <pre className="mb-0 text-light" style={{ whiteSpace: 'pre-wrap', fontSize: '13px' }}>
+                    {runOutput}
+                  </pre>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -378,10 +473,13 @@ function EditContent() {
                 </div>
                 <div className="mb-3">
                   <label className="form-label">Type</label>
-                  <select className="form-select form-control-dark" value={newFileType} onChange={(e) => setNewFileType(e.target.value as 'html' | 'css' | 'js')}>
-                    <option value="html">HTML</option>
-                    <option value="css">CSS</option>
+                  <select className="form-select form-control-dark" value={newFileType} onChange={(e) => setNewFileType(e.target.value as typeof newFileType)}>
+                    <option value="html">HTML (Web)</option>
+                    <option value="css">CSS (Styles)</option>
                     <option value="js">JavaScript</option>
+                    <option value="python">Python</option>
+                    <option value="jsx">JSX (React)</option>
+                    <option value="tsx">TSX (TypeScript React)</option>
                   </select>
                 </div>
               </div>
