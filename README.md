@@ -9,7 +9,7 @@ A modern web application for trying and practicing programming with a built-in c
 
 ## ပါးလမ်း
 
-**Program Try App** သည် ပရိုဂရမ်းမင်းစားလုံးယူပါပါ။ Next.js နှင့် Python FastAPI တည်ဆောက်ပါပါ။
+**Program Try App** သည် Next.js နှင့် Python FastAPI တည်ဆောက်သည်။
 
 ## Features
 
