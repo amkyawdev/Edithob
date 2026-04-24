@@ -56,7 +56,9 @@ function EditContent() {
   const [isSaving, setIsSaving] = useState(false)
   const [isNewFileModalOpen, setIsNewFileModalOpen] = useState(false)
   const [newFileName, setNewFileName] = useState('')
-  const [newFileType, setNewFileType] = useState<'html' | 'css' | 'js'>('html')
+  const [newFileType, setNewFileType] = useState<'html' | 'css' | 'js' | 'python' | 'jsx' | 'tsx'>('html')
+  const [runOutput, setRunOutput] = useState('')
+  const [isRunning, setIsRunning] = useState(false)
 
   // Load files from device storage
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -114,7 +116,8 @@ function EditContent() {
     
     const fileName = newFileName.endsWith(`.${newFileType}`) ? newFileName : `${newFileName}.${newFileType}`
     
-    const defaultContent = newFileType === 'html' 
+    const defaultContent = {
+      html: 
       ? `<!DOCTYPE html>\n<html>\n<head>\n  <title>${fileName}</title>\n</head>\n<body>\n  \n</body>\n</html>`
       : newFileType === 'css'
       ? `/* ${fileName} Styles */\n`
