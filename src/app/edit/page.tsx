@@ -14,7 +14,8 @@ interface Project {
   id: string
   name: string
   type: string
-  files: ProjectFile[]
+  folderName: string
+  folderHandle?: FileSystemDirectoryHandle
 }
 
 function EditContent() {
@@ -26,6 +27,55 @@ function EditContent() {
   const [currentFileIndex, setCurrentFileIndex] = useState(0)
   const [currentCode, setCurrentCode] = useState('')
   const [language, setLanguage] = useState<'html' | 'css' | 'js'>('html')
+  const [isSaving, setIsSaving] = useState(false)
+
+  // Load files from device storage
+  const loadFilesFromDevice = async (folderHandle: FileSystemDirectoryHandle) => {
+    const loadedFiles: ProjectFile[] = []
+    
+    for await (const entry of folderHandle.values()) {
+      if (entry.kind === 'file') {
+        const ext = entry.name.split('.').pop()?.toLowerCase()
+        if (ext === 'html' || ext === 'css' || ext === 'js') {
+          const file = await entry.getFile()
+          const content = await file.text()
+          loadedFiles.push({
+            name: entry.name,
+            content: content,
+            type: ext as 'html' | 'css' | 'js'
+          })
+        }
+      }
+    }
+    
+    return loadedFiles
+  }
+
+  // Save file to device storage
+  const saveFileToDevice = async (folderHandle: FileSystemDirectoryHandle, file: ProjectFile) => {
+    const fileHandle = await folderHandle.getFileHandle(file.name, { create: true })
+    const writable = await fileHandle.createWritable()
+    await writable.write(file.content)
+    await writable.close()
+  }
+
+  // Save all files to device storage
+  const saveProjectToDevice = async () => {
+    if (!project?.folderHandle) return
+    
+    setIsSaving(true)
+    try {
+      for (const file of files) {
+        await saveFileToDevice(project.folderHandle, file)
+      }
+      alert('သိမ်းပါပါ။')
+    } catch (err) {
+      console.error('Error saving:', err)
+      alert('Error saving files')
+    } finally {
+      setIsSaving(false)
+    }
+  }
 
   useEffect(() => {
     if (!projectId) return
@@ -37,13 +87,17 @@ function EditContent() {
       
       if (foundProject) {
         setProject(foundProject)
-        setFiles(foundProject.files)
         
-        // Select first file by default
-        if (foundProject.files.length > 0) {
-          setCurrentFileIndex(0)
-          setCurrentCode(foundProject.files[0].content)
-          setLanguage(foundProject.files[0].type)
+        // Load files from device storage if handle exists
+        if (foundProject.folderHandle) {
+          loadFilesFromDevice(foundProject.folderHandle).then(loadedFiles => {
+            setFiles(loadedFiles)
+            if (loadedFiles.length > 0) {
+              setCurrentFileIndex(0)
+              setCurrentCode(loadedFiles[0].content)
+              setLanguage(loadedFiles[0].type)
+            }
+          })
         }
       }
     }
@@ -53,26 +107,6 @@ function EditContent() {
     const updatedFiles = [...files]
     updatedFiles[index] = { ...updatedFiles[index], content }
     setFiles(updatedFiles)
-  }
-
-  const saveProject = () => {
-    if (!projectId) return
-    
-    const savedProjects = localStorage.getItem('edithob_projects')
-    if (savedProjects) {
-      const projects: Project[] = JSON.parse(savedProjects)
-      const updatedProjects = projects.map(p => 
-        p.id === projectId ? { ...p, files } : p
-      )
-      localStorage.setItem('edithob_projects', JSON.stringify(updatedProjects))
-      alert('သိမ်းပါပါ။')
-    }
-  }
-
-  const getLanguageFromFileName = (filename: string): 'html' | 'css' | 'js' => {
-    if (filename.endsWith('.css')) return 'css'
-    if (filename.endsWith('.js')) return 'js'
-    return 'html'
   }
 
   const getFileIcon = (type: 'html' | 'css' | 'js') => {
@@ -133,8 +167,9 @@ function EditContent() {
             <Link href="/main" className="nav-link btn-sm me-2">
               <i className="bi bi-arrow-left me-1"></i>Back
             </Link>
-            <button className="btn btn-light btn-sm" onClick={saveProject}>
-              <i className="bi bi-save me-1"></i>Save
+            <button className="btn btn-light btn-sm" onClick={saveProjectToDevice} disabled={isSaving}>
+              <i className={`bi ${isSaving ? 'bi-hourglass-split' : 'bi-save'} me-1`}></i>
+              {isSaving ? 'Saving...' : 'Save'}
             </button>
           </div>
         </div>
@@ -146,7 +181,9 @@ function EditContent() {
           <h5 className="mb-0">
             <i className="bi bi-pencil me-2"></i>{project.name}
           </h5>
-          <small className="text-muted-custom">{files.length} files</small>
+          <small className="text-muted-custom">
+            <i className="bi bi-folder2 me-1"></i>{project.folderName}
+          </small>
         </div>
 
         <div className="row g-3">
