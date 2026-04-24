@@ -1,0 +1,14 @@
+title: Edithob Backend
+emoji: 🖥️
+colorFrom: blue
+colorTo: green
+sdk: gradio
+sdk_config:
+  accelerator: null
+pythia:
+  disable_template: true
+hf_space:
+  id: amkyawdev/Edithob-backend
+  emoji: 🖥️
+  colorFrom: blue
+  colorTo: green
