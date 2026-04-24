@@ -45,6 +45,27 @@ export default function About() {
       <div className="container py-4">
         <div className="row justify-content-center">
           <div className="col-12 col-md-8 col-lg-6">
+            {/* Developer Card */}
+            <div className="card card-dark mb-4">
+              <div className="card-body text-center">
+                <div className="mb-3">
+                  <i className="bi bi-person-circle" style={{ fontSize: '4rem' }}></i>
+                </div>
+                <h4 className="mb-2">Aung Myo Kyaw</h4>
+                <p className="text-muted-custom mb-3">Full-stack Developer</p>
+                
+                <div className="d-flex justify-content-center gap-3 mb-4">
+                  <a href="tel:09677740154" className="btn btn-outline-light btn-sm">
+                    <i className="bi bi-telephone me-1"></i>09677740154
+                  </a>
+                  <a href="https://tiktok.com/@amkyaw.dev" target="_blank" rel="noopener noreferrer" className="btn btn-outline-light btn-sm">
+                    <i className="bi bi-tiktok me-1"></i>@amkyaw.dev
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            {/* App Info Card */}
             <div className="card card-dark mb-4">
               <div className="card-body">
                 <h4 className="mb-4">
@@ -81,7 +102,7 @@ export default function About() {
                     </li>
                     <li className="list-group-item-dark">
                       <i className="bi bi-check2 me-2"></i>
-                      Mobile Bottom Navigation
+                      Device Storage Support
                     </li>
                   </ul>
                 </div>
@@ -103,7 +124,7 @@ export default function About() {
             </div>
 
             <div className="text-center text-muted-custom">
-              <small>© 2024 Program Try App</small>
+              <small>© 2024 Program Try App by Aung Myo Kyaw</small>
             </div>
           </div>
         </div>
