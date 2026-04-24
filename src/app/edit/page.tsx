@@ -1,3 +1,29 @@
+// File System Access API Types
+declare global {
+  interface Window {
+    showDirectoryPicker(options?: { mode?: 'read' | 'readwrite'; startIn?: 'desktop' | 'documents' | 'downloads' | 'music' | 'pictures' | 'videos' }): Promise<FileSystemDirectoryHandle>
+  }
+}
+
+interface FileSystemDirectoryHandle {
+  readonly kind: 'directory'
+  readonly name: string
+  getFileHandle(name: string, options?: { create?: boolean }): Promise<FileSystemFileHandle>
+  values(): AsyncIterableIterator<FileSystemFileHandle>
+}
+
+interface FileSystemFileHandle {
+  readonly kind: 'file'
+  readonly name: string
+  getFile(): Promise<File>
+  createWritable(): Promise<FileSystemWritableFileStream>
+}
+
+interface FileSystemWritableFileStream extends WritableStream {
+  write(data: string): Promise<void>
+  close(): Promise<void>
+}
+
 'use client'
 
 import { useState, useEffect, Suspense } from 'react'
@@ -30,7 +56,9 @@ function EditContent() {
   const [isSaving, setIsSaving] = useState(false)
 
   // Load files from device storage
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const loadFilesFromDevice = async (folderHandle: FileSystemDirectoryHandle) => {
+    if (typeof window === 'undefined') return []
     const loadedFiles: ProjectFile[] = []
     
     for await (const entry of folderHandle.values()) {

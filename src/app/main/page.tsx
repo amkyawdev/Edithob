@@ -1,3 +1,27 @@
+// File System Access API Types
+interface FileSystemDirectoryHandle {
+  readonly kind: 'directory'
+  readonly name: string
+  getFileHandle(name: string, options?: { create?: boolean }): Promise<FileSystemFileHandle>
+  values(): AsyncIterableIterator<FileSystemFileHandle>
+}
+
+interface FileSystemFileHandle {
+  readonly kind: 'file'
+  readonly name: string
+  getFile(): Promise<File>
+  createWritable(): Promise<FileSystemWritableFileStream>
+}
+
+interface FileSystemWritableFileStream extends WritableStream {
+  write(data: string): Promise<void>
+  close(): Promise<void>
+}
+
+interface WindowWithPicker {
+  showDirectoryPicker(options?: { mode?: 'read' | 'readwrite'; startIn?: 'desktop' | 'documents' | 'downloads' | 'music' | 'pictures' | 'videos' }): Promise<FileSystemDirectoryHandle>
+}
+
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -14,6 +38,7 @@ interface Project {
   id: string
   name: string
   type: string
+  folderName?: string
   folderHandle?: FileSystemDirectoryHandle
 }
 
@@ -46,7 +71,9 @@ export default function Main() {
   }
 
   // Check if File System Access API is supported
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const isFileSystemSupported = () => {
+    if (typeof window === 'undefined') return false
     return 'showDirectoryPicker' in window
   }
 
