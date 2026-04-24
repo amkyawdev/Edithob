@@ -65,6 +65,33 @@ export default function About() {
               </div>
             </div>
 
+            {/* Projects Card */}
+            <div className="card card-dark mb-4">
+              <div className="card-body">
+                <h5 className="mb-3">
+                  <i className="bi bi-grid me-2"></i>Projects
+                </h5>
+                <div className="list-group list-group-dark">
+                  <a href="https://srt-app-theta.vercel.app" target="_blank" rel="noopener noreferrer" className="list-group-item-dark list-group-item-action d-flex justify-content-between align-items-center">
+                    <span><i className="bi bi-train-front me-2"></i>SRT App</span>
+                    <i className="bi bi-box-arrow-up-right"></i>
+                  </a>
+                  <a href="https://qr-scanner-app-nu.vercel.app" target="_blank" rel="noopener noreferrer" className="list-group-item-dark list-group-item-action d-flex justify-content-between align-items-center">
+                    <span><i className="bi bi-qr-code me-2"></i>QR Scanner</span>
+                    <i className="bi bi-box-arrow-up-right"></i>
+                  </a>
+                  <a href="https://recap-v3.vercel.app" target="_blank" rel="noopener noreferrer" className="list-group-item-dark list-group-item-action d-flex justify-content-between align-items-center">
+                    <span><i className="bi bi-journal-text me-2"></i>Recap</span>
+                    <i className="bi bi-box-arrow-up-right"></i>
+                  </a>
+                  <a href="https://amkyawdev.neocities.org" target="_blank" rel="noopener noreferrer" className="list-group-item-dark list-group-item-action d-flex justify-content-between align-items-center">
+                    <span><i className="bi bi-person-badge me-2"></i>Portfolio</span>
+                    <i className="bi bi-box-arrow-up-right"></i>
+                  </a>
+                </div>
+              </div>
+            </div>
+
             {/* App Info Card */}
             <div className="card card-dark mb-4">
               <div className="card-body">
